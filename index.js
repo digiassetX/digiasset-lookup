@@ -81,6 +81,24 @@ module.exports.getKYC=async(address)=>{
 }
 
 /**
+ * Cleans stream data and converts BigInts from string
+ * @param {AssetRules[]} rules
+ * @return {AssetRules[]}
+ */
+const cleanRules=(rules)=>{
+    for (let rule of rules) {
+        //convert royalties to BigInt
+        if (rule.royalties!==undefined) {
+            for (let i in rule.royalties) rule.royalties[i]=BigInt(rule.royalties[i]);
+        }
+
+        //convert deflate to BigInt
+        if (rule.deflate!==undefined) rule.deflate=BigInt(rule.deflate);
+    }
+    return rules;
+}
+
+/**
  * Gets the assets rules.  Returns undefined if no rules error if asset doesn't exist
  * @param {String}  assetId
  * @param {int}     height
@@ -95,8 +113,8 @@ module.exports.getRules=async(assetId,height=0)=>{
 
         //handle simple cases
         if (rules===undefined) return undefined;                //undefined if no rules
-        if (height===0) return [rules.pop()];                   //only last state wanted
-        if (rules.length===1) return rules;                     //only 1 rule found so it must be valid
+        if (height===0) return cleanRules([rules.pop()]);  //only last state wanted
+        if (rules.length===1) return cleanRules(rules);         //only 1 rule found so it must be valid
 
         //find first rule that was valid at height
         let first=0;
@@ -115,7 +133,7 @@ module.exports.getRules=async(assetId,height=0)=>{
         }
 
         //return results
-        return valid;
+        return cleanRules(valid);
     } catch (e) {
         throw "Asset Does Not Exist: "+assetId;
     }

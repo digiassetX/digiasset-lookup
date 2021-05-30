@@ -38,3 +38,13 @@ describe("getExchangeRate", function() {
         expect(a).to.equal(1203718348.00104);
     });
 });
+
+describe("getRules", function() {
+    this.timeout(20000);
+    it("checks we can get the exchange rate at a specific height", async function() {
+        let a=await lookup.getRules("La5fMQh1m8tbaBNDmyvh8Ug3f2Bd85nVbcrDvb");
+        expect(a[0].rewritable).to.equal(false);
+        expect(a[0].royalties["DSXnZTQABeBrJEU5b2vpnysoGiiZwjKKDY"]).to.equal(500000000n);
+        expect(a[0].effective).to.equal(12626881);
+    });
+});
