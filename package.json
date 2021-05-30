@@ -1,21 +1,26 @@
 {
   "name": "digiasset-lookup",
-  "version": "1.0.2",
+  "version": "1.0.7",
   "description": "Lookup tools to help with DigiByte DigiAssets",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "mocha"
   },
   "keywords": [],
   "author": "Matthew Cornelisse",
   "license": "MIT",
   "dependencies": {
-    "aws-sdk": "^2.868.0",
-    "digiassetx-digibyte-stream-types": "^1.0.2",
+    "aws-sdk": "^2.897.0",
+    "digiassetx-digibyte-stream-types": "^1.0.6",
+    "digibyte-price-decoder": "^1.0.2",
     "ipfs-simple": "0.0.3"
   },
   "repository": {
     "type": "git",
     "url": "https://github.com/digiassetX/digiasset-lookup"
+  },
+  "devDependencies": {
+    "mocha": "^8.4.0",
+    "chai": "^4.3.4"
   }
 }
