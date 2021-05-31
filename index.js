@@ -1,3 +1,5 @@
+// noinspection JSUnfilteredForInLoop
+
 require('digiassetx-digibyte-stream-types');
 const priceDecoder=require('digibyte-price-decoder');
 
@@ -27,6 +29,12 @@ const streamToString=async (stream)=>{
     });
 }
 
+/**
+ * Gets a stream from digiassetX
+ * @param {string}  Key
+ * @return {Promise<ReadStream|stream.Readable>}
+ */
+const getStream=async(Key)=>(await s3.getObject({Bucket,Key,RequestPayer:"requester"})).createReadStream();
 
 
 
@@ -63,6 +71,24 @@ module.exports.initIPFS=(config)=>{
 }
 
 
+
+
+/**
+ * Gets an addresses data
+ * @param {string}  address
+ * @return {Promise<AddressData>}
+ */
+module.exports.getAddress=async(address)=>{
+    if (s3===undefined) throw "Loader not initialize";
+    try {
+        //load from s3
+        let stream = await getStream(address);
+        return JSON.parse(await streamToString(stream));
+    } catch (e) {
+        throw "Address Does Not Exist: "+address;
+    }
+}
+
 /**
  * Gets the users KYC state.
  * Returns undefined if no KYC, error if no address
@@ -73,7 +99,7 @@ module.exports.getKYC=async(address)=>{
     if (s3===undefined) throw "Loader not initialize";
     try {
         //load from s3
-        let stream = (await s3.getObject({Bucket,Key:address})).createReadStream();
+        let stream = await getStream(address);
         return (JSON.parse(await streamToString(stream))).kyc;
     } catch (e) {
         throw "Address Does Not Exist: "+address;
@@ -108,7 +134,7 @@ module.exports.getRules=async(assetId,height=0)=>{
     if (s3===undefined) throw "Loader not initialize";
     try {
         //load from s3
-        let stream = (await s3.getObject({Bucket,Key:assetId})).createReadStream();
+        let stream = await getStream(assetId);
         /** @type {AssetRules[]}*/let rules=(JSON.parse(await streamToString(stream))).rules;
 
         //handle simple cases
@@ -166,7 +192,7 @@ module.exports.getUTXO=async(txid,vout)=>{
     if (s3===undefined) throw "Loader not initialize";
     try {
         //load from s3
-        let stream = (await s3.getObject({Bucket,Key:txid})).createReadStream();
+        let stream = await getStream(txid);
         let utxo=(JSON.parse(await streamToString(stream))).vout[vout];
         utxo.txid=txid;
         utxo.vout=vout;
@@ -187,7 +213,7 @@ module.exports.getUTXO=async(txid,vout)=>{
  * @return {Promise<double>}
  */
 const getExchangeRate=async(txid,exchangeType)=> {
-    let stream = (await s3.getObject({Bucket,Key:txid})).createReadStream();
+    let stream = await getStream(txid);
     let hex=(JSON.parse(await streamToString(stream))).vout[0].scriptPubKey.hex.substr(6);
     let decoded=priceDecoder(["0","1","2","3","4","5","6","7","8","9"],hex);
     return decoded[exchangeType.index.toString()];
@@ -209,7 +235,7 @@ module.exports.getExchangeRate=async(exchangeType,height=0)=>{
     if (s3===undefined) throw "Loader not initialize";
     try {
         //load from s3
-        let stream = (await s3.getObject({Bucket,Key:exchangeType.address})).createReadStream();
+        let stream = await getStream(exchangeType.address);
         /** @type {AddressTxRecord[]}*/let txs=(JSON.parse(await streamToString(stream))).txs;
 
         //remove any txs that arent exchange rate data

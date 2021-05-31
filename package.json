@@ -1,6 +1,6 @@
 {
   "name": "digiasset-lookup",
-  "version": "1.0.8",
+  "version": "1.0.9",
   "description": "Lookup tools to help with DigiByte DigiAssets",
   "main": "index.js",
   "scripts": {
@@ -13,7 +13,7 @@
     "aws-sdk": "^2.897.0",
     "digiassetx-digibyte-stream-types": "^1.0.6",
     "digibyte-price-decoder": "^1.0.2",
-    "ipfs-simple": "0.0.3"
+    "ipfs-simple": "^0.0.6"
   },
   "repository": {
     "type": "git",
