@@ -90,6 +90,23 @@ module.exports.getAddress=async(address)=>{
 }
 
 /**
+ * Gets an assets data
+ * @param {string}  assetId
+ * @return {Promise<AssetData>}
+ */
+module.exports.getAsset=async(assetId)=>{
+    if (!/^[LU][ahd][1-9A-HJ-NP-Za-km-z]{36}$/.test(assetId)) throw "Invalid Asset Id";
+    if (s3===undefined) throw "Loader not initialize";
+    try {
+        //load from s3
+        let stream = await getStream(assetId);
+        return JSON.parse(await streamToString(stream));
+    } catch (e) {
+        throw "Asset Does Not Exist: "+assetId;
+    }
+}
+
+/**
  * Gets the users KYC state.
  * Returns undefined if no KYC, error if no address
  * @param {string}  address

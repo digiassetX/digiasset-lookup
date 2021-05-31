@@ -48,3 +48,28 @@ describe("getRules", function() {
         expect(a[0].effective).to.equal(12626881);
     });
 });
+
+describe("getAsset",function () {
+    this.timeout(20000);
+    it("check invalid assetId format throws error", async function() {
+        try {
+            let a = await lookup.getAsset("La5fMQh1m8tbaBNDmyvh8Ug3f2Bd85nVbcrDv");
+            expect(true).to.equal(false);   //line should not run
+        } catch (e) {
+            expect(e.toString()).to.equal("Invalid Asset Id");
+        }
+    });
+    it("check retrieves existing asset", async function() {
+        let a = await lookup.getAsset("La5fMQh1m8tbaBNDmyvh8Ug3f2Bd85nVbcrDvb");
+        expect(a.issuer).to.equal("SMMyDUnFBnkuAbYDYBBekuRhQMD343xuCP");
+    });
+    it("check non existant assets throw error", async function() {
+        try {
+            let a = await lookup.getAsset("La5fMQh1m8tbaBNDmyvh8Ug3f2Bd85nVbcrDvc");
+            expect(true).to.equal(false);   //line should not run
+        } catch (e) {
+            expect(e.toString()).to.equal("Asset Does Not Exist: La5fMQh1m8tbaBNDmyvh8Ug3f2Bd85nVbcrDvc");
+        }
+    });
+
+});
