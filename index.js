@@ -12,6 +12,20 @@ const overlap=240;
 
 
 
+/**
+ * Converts Strings to BigInts
+ * @param {UTXO[]}    utxos
+ * @return {UTXO[]}
+ */
+const convertUtxoStrings=(utxos)=>{
+    for (let utxo of utxos) {
+        utxo.value=BigInt(utxo.value);
+        if (utxo.assets===undefined) continue;
+        for (let asset of utxo.assets) asset.amount=BigInt(asset.amount);
+    }
+    return utxos;
+}
+
 
 
 /**
@@ -213,7 +227,7 @@ module.exports.getUTXO=async(txid,vout)=>{
         let utxo=(JSON.parse(await streamToString(stream))).vout[vout];
         utxo.txid=txid;
         utxo.vout=vout;
-        return utxo;
+        return convertUtxoStrings([utxo])[0];
     } catch (e) {
         throw "UTXO does not exist: "+txid+":"+vout;
     }
