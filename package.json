@@ -1,6 +1,6 @@
 {
   "name": "digiasset-lookup",
-  "version": "1.0.12",
+  "version": "1.0.13",
   "description": "Lookup tools to help with DigiByte DigiAssets",
   "main": "index.js",
   "scripts": {

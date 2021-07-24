@@ -305,3 +305,34 @@ module.exports.getExchangeRate=async(exchangeType,height=0)=>{
         throw "Error finding exchange rate on "+exchangeType.address;
     }
 }
+
+/**
+ * Gives the last 10 conversion rates.
+ * First number in each array is newest.
+ * Values are the number of DGB sats needed to purchase one of that currency
+ * @return {Promise<{
+ *     BRL: Number[],
+ *     BTC: Number[],
+ *     CNY: Number[],
+ *     ETH: Number[],
+ *     LTC: Number[],
+ *     NXS: Number[],
+ *     TRY: Number[],
+ *     CAD: Number[],
+ *     CHF: Number[],
+ *     EUR: Number[],
+ *     ZIL: Number[],
+ *     XVG: Number[],
+ *     JPY: Number[],
+ *     RVN: Number[],
+ *     AUD: Number[],
+ *     USD: Number[],
+ *     DCR: Number[],
+ *     RDD: Number[],
+ *     GBP: Number[],
+ *     POT: Number[],
+ *     time: Number[],
+ *     block:Number[]
+ * }>}
+ */
+module.exports.getLatestExchangeRates=async()=>getS3Data("rates");
