@@ -50,6 +50,15 @@ const streamToString=async (stream)=>{
  */
 const getStream=async(Key)=>(await s3.getObject({Bucket,Key,RequestPayer:"requester"})).createReadStream();
 
+/**
+ * Gets data from S3
+ * @param {string}  Key
+ * @return {Promise<any>}
+ */
+let getS3Data=async(Key)=>{   //let because it is replaceable
+    let stream = await getStream(Key);
+    return JSON.parse(await streamToString(stream));
+}
 
 
 
@@ -62,14 +71,19 @@ const getStream=async(Key)=>(await s3.getObject({Bucket,Key,RequestPayer:"reques
 
 
 /**
- * Initializes S3 connection
+ * Initializes S3 connection.
+ * Must
  * @param {{
- *    accessKeyId:     string,
- *    secretAccessKey: string
- * }} config
+ *    accessKeyId:     string?,
+ *    secretAccessKey: string?
+ * }|function} config
  */
 module.exports.initS3=(config)=>{
-    s3 = new AWS.S3(config);
+    if (typeof config==="function") {
+        getS3Data=config;
+    } else {
+        s3 = new AWS.S3(config);
+    }
 }
 
 
@@ -96,8 +110,7 @@ module.exports.getAddress=async(address)=>{
     if (s3===undefined) throw "Loader not initialize";
     try {
         //load from s3
-        let stream = await getStream(address);
-        return JSON.parse(await streamToString(stream));
+        return await getS3Data(address);
     } catch (e) {
         throw "Address Does Not Exist: "+address;
     }
@@ -113,8 +126,7 @@ module.exports.getAsset=async(assetId)=>{
     if (s3===undefined) throw "Loader not initialize";
     try {
         //load from s3
-        let stream = await getStream(assetId);
-        return JSON.parse(await streamToString(stream));
+        return await getS3Data(assetId);
     } catch (e) {
         throw "Asset Does Not Exist: "+assetId;
     }
@@ -130,8 +142,7 @@ module.exports.getKYC=async(address)=>{
     if (s3===undefined) throw "Loader not initialize";
     try {
         //load from s3
-        let stream = await getStream(address);
-        return (JSON.parse(await streamToString(stream))).kyc;
+        return (await getS3Data(address)).kyc;
     } catch (e) {
         throw "Address Does Not Exist: "+address;
     }
@@ -165,8 +176,7 @@ module.exports.getRules=async(assetId,height=0)=>{
     if (s3===undefined) throw "Loader not initialize";
     try {
         //load from s3
-        let stream = await getStream(assetId);
-        /** @type {AssetRules[]}*/let rules=(JSON.parse(await streamToString(stream))).rules;
+        /** @type {AssetRules[]}*/let rules=(await getS3Data(assetId)).rules;
 
         //handle simple cases
         if (rules===undefined) return undefined;                //undefined if no rules
@@ -223,8 +233,7 @@ module.exports.getUTXO=async(txid,vout)=>{
     if (s3===undefined) throw "Loader not initialize";
     try {
         //load from s3
-        let stream = await getStream(txid);
-        let utxo=(JSON.parse(await streamToString(stream))).vout[vout];
+        let utxo=(await getS3Data(txid)).vout[vout];
         utxo.txid=txid;
         utxo.vout=vout;
         return convertUtxoStrings([utxo])[0];
@@ -244,8 +253,7 @@ module.exports.getUTXO=async(txid,vout)=>{
  * @return {Promise<double>}
  */
 const getExchangeRate=async(txid,exchangeType)=> {
-    let stream = await getStream(txid);
-    let hex=(JSON.parse(await streamToString(stream))).vout[0].scriptPubKey.hex.substr(6);
+    let hex=(await getS3Data(txid)).vout[0].scriptPubKey.hex.substr(6);
     let decoded=priceDecoder(["0","1","2","3","4","5","6","7","8","9"],hex);
     return decoded[exchangeType.index.toString()];
 }
@@ -266,8 +274,7 @@ module.exports.getExchangeRate=async(exchangeType,height=0)=>{
     if (s3===undefined) throw "Loader not initialize";
     try {
         //load from s3
-        let stream = await getStream(exchangeType.address);
-        /** @type {AddressTxRecord[]}*/let txs=(JSON.parse(await streamToString(stream))).txs;
+        /** @type {AddressTxRecord[]}*/let txs=(await getS3Data(exchangeType.address)).txs;
 
         //remove any txs that arent exchange rate data
         txs=txs.filter(data=>(data.change==="-1000"));

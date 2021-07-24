@@ -63,7 +63,7 @@ describe("getAsset",function () {
         let a = await lookup.getAsset("La5fMQh1m8tbaBNDmyvh8Ug3f2Bd85nVbcrDvb");
         expect(a.issuer).to.equal("SMMyDUnFBnkuAbYDYBBekuRhQMD343xuCP");
     });
-    it("check non existant assets throw error", async function() {
+    it("check non existent assets throw error", async function() {
         try {
             let a = await lookup.getAsset("La5fMQh1m8tbaBNDmyvh8Ug3f2Bd85nVbcrDvc");
             expect(true).to.equal(false);   //line should not run
@@ -73,3 +73,17 @@ describe("getAsset",function () {
     });
 
 });
+
+/*
+//test passes but will cause all others to fail so commented out
+describe("custom lookup",function () {
+    this.timeout(20000);
+    lookup.initS3((Key)=>{
+        return {fake:"test results come from function"};
+    });
+    it("check custom function is used", async function() {
+        let a = await lookup.getAddress("La5fMQh1m8tbaBNDmyvh8Ug3f2Bd85nVbcrDv");
+        expect(a.fake).to.equal("test results come from function");
+    });
+});
+ */
