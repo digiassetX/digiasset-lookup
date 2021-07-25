@@ -81,6 +81,7 @@ let getS3Data=async(Key)=>{   //let because it is replaceable
 module.exports.initS3=(config)=>{
     if (typeof config==="function") {
         getS3Data=config;
+        s3=true;
     } else {
         s3 = new AWS.S3(config);
     }
