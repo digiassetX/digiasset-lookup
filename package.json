@@ -1,6 +1,6 @@
 {
   "name": "digiasset-lookup",
-  "version": "1.0.14",
+  "version": "1.0.15",
   "description": "Lookup tools to help with DigiByte DigiAssets",
   "main": "index.js",
   "scripts": {
@@ -11,9 +11,9 @@
   "license": "MIT",
   "dependencies": {
     "aws-sdk": "^2.897.0",
-    "digiassetx-digibyte-stream-types": "^1.0.6",
+    "digiassetx-digibyte-stream-types": "^1.0.8",
     "digibyte-price-decoder": "^1.0.2",
-    "ipfs-simple": "^0.0.6"
+    "ipfs-simple": "^0.0.13"
   },
   "repository": {
     "type": "git",
