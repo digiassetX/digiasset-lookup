@@ -74,6 +74,14 @@ describe("getAsset",function () {
 
 });
 
+describe("getHeight", function() {
+    this.timeout(20000);
+    it("checks we can get the exchange rate at a specific height", async function() {
+        let a=await lookup.getHeight();
+        expect(a).to.greaterThan(0);
+    });
+});
+
 /*
 //test passes but will cause all others to fail so commented out
 describe("custom lookup",function () {

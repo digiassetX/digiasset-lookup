@@ -6,6 +6,7 @@ const priceDecoder=require('digibyte-price-decoder');
 const AWS=require('aws-sdk');
 const IPFS=require('ipfs-simple');
 const Bucket="chaindata-digibyte";
+const got=require('got');
 let s3;
 const overlap=240;
 
@@ -115,6 +116,27 @@ module.exports.getAddress=async(address)=>{
     } catch (e) {
         throw "Address Does Not Exist: "+address;
     }
+}
+
+/**
+ * Function to get DigiByte's current block height
+ * @param {?int} height  - if provided just returns the value provided(provided as simple standard in case you are not
+ *                         sure if you know.  If undefined looks up actual value)
+ * @returns {Promise<int>}
+ */
+module.exports.getHeight=async(height)=>{
+    //see if was provided
+    if (height!==undefined) return height;
+
+    //try to get public block height
+    try {
+        let response=await got.get('https://chainz.cryptoid.info/dgb/api.dws?q=getblockcount');
+        return  parseInt(response.body);
+    } catch (e) {}
+
+    //backup get height s3 is at
+    if (s3===undefined) throw "Loader not initialize";
+    return await getS3Data("height");
 }
 
 /**
