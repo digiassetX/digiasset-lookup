@@ -234,12 +234,13 @@ module.exports.getRules=async(assetId,height=0)=>{
  * Returns a list of votes associated with a DigiAsset cid
  * This data is human readable only so if not findable can be ignored for compliance checking
  * @param {string}  cid
+ * @param {int} timeout - max amount of time to look for vote data
  * @return {Promise<{address:string,label:string}[]>}
  */
-module.exports.getVotes=async(cid)=>{
+module.exports.getVotes=async(cid,timeout=600000)=>{
     try {
         // noinspection JSUnresolvedVariable
-        return (await IPFS.catJSON(cid)).votes||[];
+        return (await IPFS.catJSON(cid,timeout)).votes||[];
     } catch (e) {
         return [];
     }
