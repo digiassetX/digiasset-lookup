@@ -4,7 +4,7 @@ require('digiassetx-digibyte-stream-types');
 const priceDecoder=require('digibyte-price-decoder');
 
 const AWS=require('aws-sdk');
-const IPFS=require('ipfs-simple');
+const ipfs=require('ipfs-simple');
 const Bucket="chaindata-digibyte";
 const got=require('got');
 let s3;
@@ -94,10 +94,10 @@ module.exports.initS3=(config)=>{
  *      http://127.0.0.1:5001/api/v0/
  *
  * no need to run unless needs to change
- * @param {string} config
+ * @param {string|IPFS} config
  */
 module.exports.initIPFS=(config)=>{
-    IPFS.path=config;
+    ipfs.init(config);
 }
 
 
@@ -240,7 +240,7 @@ module.exports.getRules=async(assetId,height=0)=>{
 module.exports.getVotes=async(cid,timeout=600000)=>{
     try {
         // noinspection JSUnresolvedVariable
-        return (await IPFS.catJSON(cid,timeout)).votes||[];
+        return (await ipfs.catJSON(cid,timeout)).votes||[];
     } catch (e) {
         return [];
     }
