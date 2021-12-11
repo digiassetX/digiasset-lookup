@@ -37,6 +37,22 @@ describe("getExchangeRate", function() {
         },12648500);
         expect(a).to.equal(1203718348.00104);
     });
+    it("check works even if invalid values in range", async function() {
+        let a=await lookup.getExchangeRate({
+            address: "dgb1qunxh378eltj2jrwza5sj9grvu5xud43vqvudwh",
+            index:   6,
+            name:    "CNZ"
+        },13183500);
+        expect(a).to.equal(363337356.1501384);
+    });
+    it("check works even if no valid values in range", async function() {
+        let a=await lookup.getExchangeRate({
+            address: "dgb1qunxh378eltj2jrwza5sj9grvu5xud43vqvudwh",
+            index:   6,
+            name:    "CNZ"
+        },14062800);
+        expect(a).to.equal(301834628.0256946);
+    });
 });
 
 describe("getRules", function() {
@@ -56,7 +72,7 @@ describe("getAsset",function () {
             let a = await lookup.getAsset("La5fMQh1m8tbaBNDmyvh8Ug3f2Bd85nVbcrDv");
             expect(true).to.equal(false);   //line should not run
         } catch (e) {
-            expect(e.toString()).to.equal("Invalid Asset Id");
+            expect(e.toString()).to.equal("ExpectedError: Invalid Asset Id");
         }
     });
     it("check retrieves existing asset", async function() {
@@ -68,7 +84,7 @@ describe("getAsset",function () {
             let a = await lookup.getAsset("La5fMQh1m8tbaBNDmyvh8Ug3f2Bd85nVbcrDvc");
             expect(true).to.equal(false);   //line should not run
         } catch (e) {
-            expect(e.toString()).to.equal("Asset Does Not Exist: La5fMQh1m8tbaBNDmyvh8Ug3f2Bd85nVbcrDvc");
+            expect(e.toString()).to.equal("ExpectedError: Asset Does Not Exist: La5fMQh1m8tbaBNDmyvh8Ug3f2Bd85nVbcrDvc");
         }
     });
 

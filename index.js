@@ -2,6 +2,7 @@
 
 require('digiassetx-digibyte-stream-types');
 const priceDecoder=require('digibyte-price-decoder');
+const ExpectedError=require('./lib/ExpectedError');
 
 const AWS=require('aws-sdk');
 const ipfs=require('ipfs-simple');
@@ -109,12 +110,12 @@ module.exports.initIPFS=(config)=>{
  * @return {Promise<AddressData>}
  */
 module.exports.getAddress=async(address)=>{
-    if (s3===undefined) throw "Loader not initialize";
+    if (s3===undefined) throw new ExpectedError("Loader not initialize");
     try {
         //load from s3
         return await getS3Data(address);
     } catch (e) {
-        throw "Address Does Not Exist: "+address;
+        throw new ExpectedError("Address Does Not Exist: "+address);
     }
 }
 
@@ -135,7 +136,7 @@ module.exports.getHeight=async(height)=>{
     } catch (e) {}
 
     //backup get height s3 is at
-    if (s3===undefined) throw "Loader not initialize";
+    if (s3===undefined) throw new ExpectedError("Loader not initialize");
     return await getS3Data("height");
 }
 
@@ -145,13 +146,13 @@ module.exports.getHeight=async(height)=>{
  * @return {Promise<AssetData>}
  */
 module.exports.getAsset=async(assetId)=>{
-    if (!/^[LU][ahd][1-9A-HJ-NP-Za-km-z]{36}$/.test(assetId)) throw "Invalid Asset Id";
-    if (s3===undefined) throw "Loader not initialize";
+    if (!/^[LU][ahd][1-9A-HJ-NP-Za-km-z]{36}$/.test(assetId)) throw new ExpectedError("Invalid Asset Id");
+    if (s3===undefined) throw new ExpectedError("Loader not initialize");
     try {
         //load from s3
         return await getS3Data(assetId);
     } catch (e) {
-        throw "Asset Does Not Exist: "+assetId;
+        throw new ExpectedError("Asset Does Not Exist: "+assetId);
     }
 }
 
@@ -162,12 +163,12 @@ module.exports.getAsset=async(assetId)=>{
  * @return {Promise<KycState>}
  */
 module.exports.getKYC=async(address)=>{
-    if (s3===undefined) throw "Loader not initialize";
+    if (s3===undefined) throw new ExpectedError("Loader not initialize");
     try {
         //load from s3
         return (await getS3Data(address)).kyc;
     } catch (e) {
-        throw "Address Does Not Exist: "+address;
+        throw new ExpectedError("Address Does Not Exist: "+address);
     }
 }
 
@@ -196,7 +197,7 @@ const cleanRules=(rules)=>{
  * @return {Promise<AssetRules[]>}
  */
 module.exports.getRules=async(assetId,height=0)=>{
-    if (s3===undefined) throw "Loader not initialize";
+    if (s3===undefined) throw new ExpectedError("Loader not initialize");
     try {
         //load from s3
         /** @type {AssetRules[]}*/let rules=(await getS3Data(assetId)).rules;
@@ -225,7 +226,7 @@ module.exports.getRules=async(assetId,height=0)=>{
         //return results
         return cleanRules(valid);
     } catch (e) {
-        throw "Asset Does Not Exist: "+assetId;
+        throw new ExpectedError("Asset Does Not Exist: "+assetId);
     }
 }
 
@@ -254,7 +255,7 @@ module.exports.getVotes=async(cid,timeout=600000)=>{
  * @return {Promise<UTXO>}
  */
 module.exports.getUTXO=async(txid,vout)=>{
-    if (s3===undefined) throw "Loader not initialize";
+    if (s3===undefined) throw new ExpectedError("Loader not initialize");
     try {
         //load from s3
         let utxo=(await getS3Data(txid)).vout[vout];
@@ -262,7 +263,7 @@ module.exports.getUTXO=async(txid,vout)=>{
         utxo.vout=vout;
         return convertUtxoStrings([utxo])[0];
     } catch (e) {
-        throw "UTXO does not exist: "+txid+":"+vout;
+        throw new ExpectedError("UTXO does not exist: "+txid+":"+vout);
     }
 }
 
@@ -295,16 +296,20 @@ const getExchangeRate=async(txid,exchangeType)=> {
  * @return {Promise<double>}
  */
 module.exports.getExchangeRate=async(exchangeType,height=0)=>{
-    if (s3===undefined) throw "Loader not initialize";
+    if (s3===undefined) throw new ExpectedError("Loader not initialize");
     try {
         //load from s3
         /** @type {AddressTxRecord[]}*/let txs=(await getS3Data(exchangeType.address)).txs;
 
-        //remove any txs that arent exchange rate data
+        //remove any txs that aren't exchange rate data
         txs=txs.filter(data=>(data.change==="-1000"));
 
         //handle easy case
-        if (height===0) return getExchangeRate(txs.pop().txid,exchangeType);
+        if (height===0) {
+            let value=NaN;
+            while (isNaN(value)) value=getExchangeRate(txs.pop().txid,exchangeType);  //occasionally values can't be sourced, and they are stored as NaN so keep moving backwards until we find a valid value
+            return value;
+        }
 
         //find first rule that was valid at height
         let first=0;
@@ -323,10 +328,21 @@ module.exports.getExchangeRate=async(exchangeType,height=0)=>{
         }
         /** @type {number[]} */let exchangeRates=await Promise.all(valid);//await for exchange rates to all finish
 
-        //return results
-        return Math.min(...exchangeRates);                      //return minimum value because this is cheapest legal price
+        //remove any values that are NaN
+        exchangeRates=exchangeRates.filter(data=>(!isNaN(data)));
+
+        //return results if found
+        if (exchangeRates.length>0) return Math.min(...exchangeRates);                      //return minimum value because this is the cheapest legal price
+
+        //none in range where valid so find most recent value before range
+        for (let i=first-1;i>=0;i--) {
+            let value=await getExchangeRate(txs[i].txid,exchangeType);
+            if (!isNaN(value)) return value;
+        }
+        throw new ExpectedError("No valid exchange rates found on "+exchangeType.address);
+
     } catch (e) {
-        throw "Error finding exchange rate on "+exchangeType.address;
+        throw new ExpectedError("Error finding exchange rate on "+exchangeType.address);
     }
 }
 
