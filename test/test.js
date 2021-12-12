@@ -53,6 +53,14 @@ describe("getExchangeRate", function() {
         },14062800);
         expect(a).to.equal(301834628.0256946);
     });
+    it("check can get most resent", async function() {
+        let a=await lookup.getExchangeRate({
+            address: "dgb1qunxh378eltj2jrwza5sj9grvu5xud43vqvudwh",
+            index:   0,
+            name:    "CAD"
+        },0);
+        expect(a).to.greaterThan(0);
+    });
 });
 
 describe("getRules", function() {

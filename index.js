@@ -307,7 +307,7 @@ module.exports.getExchangeRate=async(exchangeType,height=0)=>{
         //handle easy case
         if (height===0) {
             let value=NaN;
-            while (isNaN(value)) value=getExchangeRate(txs.pop().txid,exchangeType);  //occasionally values can't be sourced, and they are stored as NaN so keep moving backwards until we find a valid value
+            while (isNaN(value)) value=await getExchangeRate(txs.pop().txid,exchangeType);  //occasionally values can't be sourced, and they are stored as NaN so keep moving backwards until we find a valid value
             return value;
         }
 
